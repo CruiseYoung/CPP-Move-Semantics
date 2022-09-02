@@ -218,7 +218,7 @@ callFoo(std::move(c)); // OK, expands to foo(std::move(arg)), so it calls foo(co
 传递给callFoo()的任何参数都会变成lvalue(因为参数\textit{arg}是有名称的对象)。然而，\textit{arg}的类型取决于传递的内容:\par
 
 \begin{itemize}
-	\item 如果传递lvalue，\textit{arg}就是一个lvalue引用(传递非\textit{const} X时是X\&，传递\textit{const} X时是X\&)。
+	\item 如果传递lvalue，\textit{arg}就是一个lvalue引用(传递非\textit{const} X时是X\&，传递\textit{const} X时是const X\&)。
 	\item 如果传递rvalue(未命名的临时对象或用\textit{std::move()}标记的对象)，则\textit{arg}是rvalue引用(X\&\&或const X\&\&)。
 \end{itemize}
 

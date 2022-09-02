@@ -2,31 +2,147 @@
 
 但是，使用这些迭代器时要小心。在迭代容器或范围的元素时，每次对元素的访问都使用\textit{std::move()}。这可能会更快，会使元素处于有效但未定义的状态，所以一个元素不应该使用两次\textit{std::move()}。\par
 
+\hspace*{\fill} \par %插入空行
+\textbf{14.3.1 移动算法中的迭代器}
 
+算法中使用移动迭代器，通常只有在算法保证每个元素只使用一次时才有意义。因此，该算法应该:\par
 
+\begin{itemize}
+	\item 要求源的输入迭代器类别和目标的输出迭代器类别
+	\item 或者保证每个元素只使用一次(例如，为\textit{std::for\_each()}算法指定)
+\end{itemize}
 
+对于具有可调用对象的算法，允许规范提供详细的功能，元素通过\textit{std::move()}传递给可调用对象。在可调用对象内部，可以决定如何处理:\par
 
+\begin{itemize}
+	\item 按值接受参数，总是移动/窃取值或资源
+	\item 通过右值/通用引用参数来决定移动/窃取哪个值/资源
+\end{itemize}
 
+例如:\par
 
+{\color{red}{lib/foreachmove.cpp}}|\par
 
+\begin{lstlisting}[caption={}]
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+template<typename T>
+void print(const std::string& name, const T& coll)
+{
+	std::cout << name << " (" << coll.size() << " elems): ";
+	for (const auto& elem : coll) {
+		std::cout << " \"" << elem << "\"";
+	}
+	std::cout << "\n";
+}
+void process(std::string s) // gets moved value from rvalues
+{
+	std::cout << "- process(" << s << ")\n";
+	...
+}
+int main()
+{
+	std::vector<std::string> coll{"don't", "vote", "for", "liars"};
+	print("coll", coll);
+	// move away only the elements processed:
+	std::for_each(std::make_move_iterator(coll.begin()),
+	std::make_move_iterator(coll.end()),
+	[] (auto&& elem) {
+		if (elem.size() != 4) {
+			process(std::move(elem));
+		}
+	});
+	print("coll", coll);
+}
+\end{lstlisting}
 
+代码中，将所有大小不为4的元素移动到helper函数\textit{process()}中:\par
 
+\begin{lstlisting}[caption={}]
+// move away only the elements processed:
+std::for_each(std::make_move_iterator(coll.begin()),
+std::make_move_iterator(coll.end()),
+[] (auto&& elem) {
+	if (elem.size() != 4) {
+		process(std::move(elem));
+	}
+});
+\end{lstlisting}
 
+为此，将标记的元素(移动迭代器标记为\textit{std::move()})通过通用引用传递给\textit{process()}，并将其与\textit{std::move()}一起传递给\textit{process()}。因为\textit{process()}按值接受参数，所以值实际上已经移走。\par
 
+因此，所有大小不为4的元素都从容器\textit{coll}中的对象中移出。该程序的输出如下(?表示未知值):\par
 
+\begin{tcolorbox}[colback=white,colframe=black]
+coll (4 elems): "don't" "vote" "for" "liars" \\
+- process(don't) \\
+- process(for) \\
+- process(liars) \\
+coll (4 elems): "?" "vote" "?" "?"
+\end{tcolorbox}
 
+最后一行是这样的:\par
 
+\begin{tcolorbox}[colback=white,colframe=black]
+coll (4 elems): "" "vote" "" ""
+\end{tcolorbox}
 
+这里使用了辅助函数\textit{std::make\_move\_iterator()}，这样在声明迭代器时就不必指定元素类型了。从C++17开始，类模板实参推导(CTAD)允许直接声明类型\textit{std::move\_iterator}，而不需要指定元素类型:\par
 
+\begin{lstlisting}[caption={}]
+std::for_each(std::move_iterator{coll.begin()},
+std::move_iterator{coll.end()},
+[] (auto&& elem) {
+	if (elem.size() != 4) {
+		process(std::move(elem));
+	}
+});
+\end{lstlisting}
 
+\hspace*{\fill} \par %插入空行
+\textbf{14.3.2 在构造函数和成员函数中移动迭代器}
 
+也可以在只读取一次元素的算法中使用移动迭代器，场景可能是将源容器的元素移动到另一个容器(相同或不同类型的)。例如:\par
 
+{\color{red}{lib/moveitor.cpp}}\par
 
+\begin{lstlisting}[caption={}]
+#include <iostream>
+#include <string>
+#include <list>
+#include <vector>
 
+template<typename T>
+void print(const std::string& name, const T& coll)
+{
+	std::cout << name << " (" << coll.size() << " elems): ";
+	for (const auto& elem : coll) {
+		std::cout << " \"" << elem << "\"";
+	}
+	std::cout << "\n";
+}
 
+int main()
+{
+	std::list<std::string> src{"don't", "vote", "for", "liars"};
+	// move all elements from the list to the vector:
+	std::vector<std::string> vec{std::make_move_iterator(src.begin()),
+		std::make_move_iterator(src.end())};
+	print("src", src);
+	print("vec", vec);
+}
+\end{lstlisting}
 
+该程序有以下输出:(?表示未知值):\par
 
+\begin{tcolorbox}[colback=white,colframe=black]
+src (4 elems): "?" "?" "?" "?" \\
+vec (4 elems): "don't" "vote" "for" "liars"
+\end{tcolorbox}
 
+请再次注意，源容器中的元素数量没有改变。所有元素会移动到初始化的新容器中。因此，源范围中的元素随后处于已移动状态，所以不知道它们的值。\par
 
 
 

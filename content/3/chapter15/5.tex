@@ -32,7 +32,7 @@ void storeData(std::ofstream fstrm) // takes ownership of file (but this might c
 int main()
 {
 	auto outFile{openToWrite("iostream.tmp")}; // open file
-	storeData(std::move(outFile)); // store data
+	storeData(std::move(outFile)); //closes file (but this might change)
 	
 	// better ensure that the file is closed:
 	if (outFile.is_open()) {
@@ -56,7 +56,7 @@ std::ofstream openToWrite(const std::string& name)
 
 \begin{lstlisting}[caption={}]
 auto outFile{openToWrite("iostream.tmp")}; // open file
-storeData(std::move(outFile)); // store data
+storeData(std::move(outFile)); // closes file (but this might change)
 \end{lstlisting}
 
 因为\textit{storeData()}按值接受参数，所以它有打开文件的所有权。因此，在\textit{storeData()}的末尾，文件关闭:\par

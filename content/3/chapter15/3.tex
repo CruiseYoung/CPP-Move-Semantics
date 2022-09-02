@@ -124,8 +124,8 @@ constexpr pair::pair(U&& x, V&& y)
 注意，通用引用/转发引用还意味着，只要定义了相应的类型转换，就可以创建和赋值不同的pair。例如:\par
 
 \begin{lstlisting}[caption={}]
-std::pair<const char*, std::string> p5{"answer", "is 42"};
-auto p6{std::move(p5)};
+std::pair<const char*, std::string> p5{"path", "tmp/sub"};
+std::pair<std::string, std::filesystem::path> p6{std::move(p5)};
 
 std::cout << "p5: " << p5.first << '/' << p5.second << '\n';
 std::cout << "p6: " << p6.first << '/' << p6.second << '\n';
@@ -134,8 +134,8 @@ std::cout << "p6: " << p6.first << '/' << p6.second << '\n';
 有如下输出:\par
 
 \begin{tcolorbox}[colback=white,colframe=black]
-p5: answer/ \\
-p6: answer/is 42
+p5: path/ \\
+p6: path/"tmp/sub"
 \end{tcolorbox}
 
 初始化\textit{p6}时，将\textit{p5}的第一个成员(声明为const char*)转换为std::string，而在使用\textit{p5}的第二个成员初始化\textit{p6}的第二个成员时使用移动语义。\par

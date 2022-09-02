@@ -144,7 +144,7 @@ std::vector<bool> coll{false, true, false};
 	auto end = range.end(); // OK
 	for ( ; pos != end; ++pos ) { // OK
 		auto& elem = *pos; // ERROR: cannot bind non-const lvalue reference to an rvalue
-		elem = elem + elem;
+		elem = value;
 	}
 }
 \end{lstlisting}

@@ -3,7 +3,7 @@
 如下定义:\par
 
 \begin{lstlisting}[caption={}]
-void callFoo(auto&& val) {
+void callFoo(auto&& arg) {
 	foo(std::forward<decltype(arg)>(arg));
 }
 \end{lstlisting}
@@ -12,7 +12,7 @@ void callFoo(auto&& val) {
 
 \begin{lstlisting}[caption={}]
 template<typename T>
-void callFoo(T&& val) {
+void callFoo(T&& arg) {
 	foo(std::forward<decltype(arg)>(arg));
 }
 \end{lstlisting}

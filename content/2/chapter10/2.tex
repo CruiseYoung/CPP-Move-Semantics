@@ -103,8 +103,17 @@ int main()
 template<typename T> // primary template
 void foo(T&& arg); // - arg is a universal reference
 ...
-template<> // full specialization (for rvalues only)
+template<> // full specialization for const lvalues
+void foo(const std::string& arg); // - arg is not a universal reference
+
+template<> // full specialization for non-const lvalues
+void foo(std::string& arg); // - arg is not a universal reference
+
+template<> // full specialization for non-const rvalues
 void foo(std::string&& arg); // - arg is not a universal reference
+
+template<> // full specialization for const rvalues
+void foo(const std::string& arg); // - arg is not a universal reference
 \end{lstlisting}
 
 对于std::string类型的lvalue，仍然会调用主模板。要特化std::string的主模板的所有情况，必须提供第二个全特化版本:\par

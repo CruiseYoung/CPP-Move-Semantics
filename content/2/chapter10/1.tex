@@ -182,7 +182,7 @@ std::is_const_v<std::remove_reference_t<const int&>> // true
 template<typename T>
 void foo(T&& arg)
 {
-	if constexpr(std::is_lvalue_reference_t<T>) {
+	if constexpr(std::is_lvalue_reference_v<T>) {
 		... // passed argument is lvalue (has no move semantics)
 	}
 	else {
@@ -215,7 +215,7 @@ void processString(T&& arg);
 	\item 当类型必须匹配时(不允许隐式转换):\par
 	\begin{lstlisting}[caption={}]
 		template<typename T>
-		requires std::is_same_v<std::remove_cvref_t<T>, std::string>
+		requires std::same_as<std::remove_cvref_t<T>, std::string>
 		void processString(T&&) {
 			...
 		}
@@ -223,7 +223,7 @@ void processString(T&& arg);
 	\item 允许隐式转换:\par
 	\begin{lstlisting}[caption={}]
 	template<typename T>
-	requires std::is_convertible_v<T, std::string>
+	requires std::convertible_to<T, std::string>
 	void processString(T&&) {
 		...
 	}
@@ -231,7 +231,7 @@ void processString(T&& arg);
 	\item 允许显式转换:
 	\begin{lstlisting}[caption={}]
 	template<typename T>
-	requires std::is_constructible_v<std::string, T>
+	requires std::constructible_from<std::string, T>
 	void processString(T&&) {
 		...
 	}
@@ -241,6 +241,14 @@ void processString(T&& arg);
 通常，std::is\_convertible是期望的，因为符合函数调用的通常规则。注意，std::is\_convertible和std::is\_constructible的转换顺序与源类型和目标类型相反。\par
 
 请参考generic/universaltype.cpp以获得所有情况的完整示例。\par
+
+甚至可以使用概念而不是类型名作为类型约束。例如,
+\begin{lstlisting}[caption={}]
+template<std::convertible_to<std::string> T>
+void processString(T&&) {
+...
+}
+\end{lstlisting}
 
 C++20之前，需要enable\_if<>类型特征，而不是require，并且不支持类型特征带有\_v和\_t后缀的缩写形式。例如，以下代码支持(自C++11起)隐式转换为std::string的所有类型:\par
 
